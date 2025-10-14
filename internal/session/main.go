@@ -1,6 +1,10 @@
-package session
+package sessionstorage
 
-import "github.com/google/uuid"
+import (
+	"log/slog"
+
+	"github.com/google/uuid"
+)
 
 type SessionStorage struct {
 	Token uuid.UUID
@@ -15,8 +19,10 @@ func (s *SessionStorage) NewToken() {
 	id := uuid.New()
 
 	s.Token = id
+	slog.Info("New token created")
 }
 
 func (s *SessionStorage) RevokeToken() {
 	s.Token = uuid.Nil
+	slog.Info("New token revoked")
 }
