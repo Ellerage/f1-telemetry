@@ -1,6 +1,7 @@
 package main
 
 import (
+	filemanager "f1-telemetry/internal/file_manager"
 	hotkeyhandler "f1-telemetry/internal/hotkey_handler"
 	sessionstorage "f1-telemetry/internal/session"
 	telemetryhandler "f1-telemetry/internal/telemetry_handler"
@@ -8,11 +9,14 @@ import (
 )
 
 func main() {
+	fileManger := filemanager.NewFileManager()
+
 	telemetryServer := telemetryhandler.NewTelemetryServer(telemetryhandler.TelemetryUDPServer{
 		Addr: net.UDPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 20778,
 		},
+		FileManager: fileManger,
 	})
 
 	closeTSConn := telemetryServer.CreateConnection()
@@ -27,7 +31,6 @@ func main() {
 	)
 	hkHandler.RegisterHotkeyListener()
 
-	// Blocking operations
 	go telemetryServer.RegisterHandler()
 
 	select {}
