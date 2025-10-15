@@ -7,14 +7,20 @@ import (
 	"net"
 )
 
+type FileManager interface {
+	OpenFile(filePath string) (bool, error)
+}
+
 type TelemetryUDPServer struct {
-	conn *net.UDPConn
-	Addr net.UDPAddr
+	conn        *net.UDPConn
+	Addr        net.UDPAddr
+	FileManager FileManager
 }
 
 func NewTelemetryServer(params TelemetryUDPServer) *TelemetryUDPServer {
 	return &TelemetryUDPServer{
-		Addr: params.Addr,
+		Addr:        params.Addr,
+		FileManager: params.FileManager,
 	}
 }
 
