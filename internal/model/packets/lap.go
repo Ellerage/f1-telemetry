@@ -1,5 +1,7 @@
 package model
 
+// 	2 Hz
+
 type LapData struct {
 	LastLapTimeInMS              uint32  // Last lap time in milliseconds
 	CurrentLapTimeInMS           uint32  // Current time around the lap in milliseconds

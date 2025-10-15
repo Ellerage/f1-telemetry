@@ -1,7 +1,7 @@
 package telemetryhandler
 
 import (
-	"f1-telemetry/internal/model"
+	packets "f1-telemetry/internal/model/packets"
 	"fmt"
 	"log/slog"
 	"net"
@@ -59,11 +59,11 @@ func (ts *TelemetryUDPServer) RegisterHandler() {
 		}
 
 		switch pkt.(type) {
-		case model.MotionPacket:
-			fmt.Println("[Motion] Packet received")
-		case model.LapPacket:
+		case packets.SessionPacket:
+			fmt.Println("[Session] Packet received")
+		case packets.LapPacket:
 			fmt.Println("[LapData] Packet received")
-		case model.CarTelemetryPacket:
+		case packets.CarTelemetryPacket:
 			fmt.Println("[CarTelemetryPacket] Packet received")
 		default:
 			fmt.Println("[Unknown] Packet received")
