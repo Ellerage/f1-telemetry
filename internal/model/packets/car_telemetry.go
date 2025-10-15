@@ -1,5 +1,6 @@
 package model
 
+// 20 Hz update
 type CarTelemetryData struct {
 	Speed                   uint16     // Speed of car in kilometres per hour
 	Throttle                float32    // Amount of throttle applied (0.0 to 1.0)
