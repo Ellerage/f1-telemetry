@@ -1,5 +1,7 @@
 package model
 
+import "strconv"
+
 type LapRow struct {
 	// Header
 	SessionUID     uint64
@@ -25,6 +27,25 @@ type LapRow struct {
 	// Session
 	SessionType uint8
 	TrackId     int8
+}
+
+func (l *LapRow) FormatToRow() []string {
+	return []string{
+		strconv.FormatUint(l.SessionUID, 10),
+		strconv.FormatUint(uint64(l.PlayerCarIndex), 10),
+		strconv.FormatUint(uint64(l.CurrentLapNum), 10),
+		strconv.FormatUint(uint64(l.Sector1Minutes), 10),
+		strconv.FormatUint(uint64(l.Sector1MS), 10),
+		strconv.FormatUint(uint64(l.Sector2Minutes), 10),
+		strconv.FormatUint(uint64(l.Sector2MS), 10),
+		strconv.FormatUint(uint64(l.Sector3Minutes), 10),
+		strconv.FormatUint(uint64(l.Sector3MS), 10),
+		strconv.FormatUint(uint64(l.TotalMinutes), 10),
+		strconv.FormatUint(uint64(l.TotalMS), 10),
+		strconv.FormatUint(uint64(l.CurrentLapInvalid), 10),
+		strconv.FormatUint(uint64(l.SessionType), 10),
+		strconv.FormatUint(uint64(l.TrackId), 10),
+	}
 }
 
 var LapRowColumn = []string{

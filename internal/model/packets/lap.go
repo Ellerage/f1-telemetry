@@ -1,5 +1,7 @@
 package model
 
+import model "f1-telemetry/internal/model/csv"
+
 // 	2 Hz
 
 type LapData struct {
@@ -43,4 +45,25 @@ type LapPacket struct {
 	LapData              [22]LapData  // Lap data for all cars on track
 	TimeTrialPBCarIdx    uint8        // Index of Personal Best car in time trial (255 if invalid)
 	TimeTrialRivalCarIdx uint8        // Index of Rival car in time trial (255 if invalid)
+}
+
+func (lp *LapPacket) ToLapRow() model.LapRow {
+	data := lp.LapData[lp.Header.PlayerCarIndex]
+
+	return model.LapRow{
+		SessionUID:        lp.Header.SessionUID,
+		PlayerCarIndex:    lp.Header.PlayerCarIndex,
+		CurrentLapNum:     data.CurrentLapNum,
+		Sector1Minutes:    data.Sector1TimeMinutesPart,
+		Sector1MS:         data.Sector1TimeMSPart,
+		Sector2Minutes:    data.Sector2TimeMinutesPart,
+		Sector2MS:         data.Sector2TimeMSPart,
+		Sector3Minutes:    0,
+		Sector3MS:         0,
+		TotalMinutes:      0,
+		TotalMS:           0,
+		CurrentLapInvalid: data.CurrentLapInvalid,
+		SessionType:       0, // Use from session storage
+		TrackId:           0, // Use from session storage
+	}
 }

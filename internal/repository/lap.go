@@ -7,16 +7,25 @@ import (
 	"strings"
 )
 
-type LapRepository struct {
-	db *sql.DB
+type FileManger interface {
+	WriteRow([]string) error
 }
 
-func NewLapRepository(db *sql.DB) *LapRepository {
-	return &LapRepository{db: db}
+type LapRepositoryParams struct {
+	DB         *sql.DB
+	FileManger FileManger
+}
+
+type LapRepository struct {
+	db         *sql.DB
+	fileManger FileManger
+}
+
+func NewLapRepository(params LapRepositoryParams) *LapRepository {
+	return &LapRepository{db: params.DB, fileManger: params.FileManger}
 }
 
 func (r *LapRepository) GetAll(filters model.LapFilters) ([]model.LapRow, error) {
-
 	var query strings.Builder
 	query.WriteString("SELECT * FROM read_csv_auto('laps.csv')")
 
@@ -102,4 +111,8 @@ func (r *LapRepository) GetBySessionIdLapNum(sessionId uint64, lapNum uint8) (mo
 	)
 
 	return lap, row.Err()
+}
+
+func (r *LapRepository) Create(toCreate model.LapRow) error {
+	return r.fileManger.WriteRow(toCreate.FormatToRow())
 }

@@ -1,30 +1,37 @@
 package telemetryhandler
 
 import (
+	model "f1-telemetry/internal/model/csv"
 	packets "f1-telemetry/internal/model/packets"
 	"fmt"
 	"log/slog"
 	"net"
 )
 
-type FileManager interface {
+type LapService interface {
+	Create(toCreate model.LapRow) error
+}
+
+type TelemetryUDPServerParams struct {
+	Addr       net.UDPAddr
+	LapService LapService
 }
 
 type TelemetryUDPServer struct {
-	conn        *net.UDPConn
-	Addr        net.UDPAddr
-	FileManager FileManager
+	conn       *net.UDPConn
+	addr       net.UDPAddr
+	lapService LapService
 }
 
-func NewTelemetryServer(params TelemetryUDPServer) *TelemetryUDPServer {
+func NewTelemetryServer(params TelemetryUDPServerParams) *TelemetryUDPServer {
 	return &TelemetryUDPServer{
-		Addr:        params.Addr,
-		FileManager: params.FileManager,
+		addr:       params.Addr,
+		lapService: params.LapService,
 	}
 }
 
 func (ts *TelemetryUDPServer) CreateConnection() func() error {
-	conn, err := net.ListenUDP("udp", &ts.Addr)
+	conn, err := net.ListenUDP("udp", &ts.addr)
 	if err != nil {
 		panic(err)
 	}
@@ -57,11 +64,12 @@ func (ts *TelemetryUDPServer) RegisterHandler() {
 			continue
 		}
 
-		switch pkt.(type) {
+		switch p := pkt.(type) {
 		case packets.SessionPacket:
 			fmt.Println("[Session] Packet received")
 		case packets.LapPacket:
 			fmt.Println("[LapData] Packet received")
+			ts.lapService.Create(p.ToLapRow())
 		case packets.CarTelemetryPacket:
 			fmt.Println("[CarTelemetryPacket] Packet received")
 		default:

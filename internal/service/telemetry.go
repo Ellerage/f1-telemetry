@@ -5,7 +5,7 @@ import (
 )
 
 type TelemetryRepository interface {
-	GetAll() ([]model.LapRow, error)
+	GetAll(model.LapFilters) ([]model.LapRow, error)
 }
 
 type TelemetryServiceParams struct {
@@ -18,6 +18,6 @@ type TelemetryService struct {
 	telemetryFileManager FileManager
 }
 
-func NewTelemetryService(params TelemetryServiceParams) *LapService {
-	return &LapService{lapRepository: params.TelemetryRepository, lapFileManager: params.TelemetryFileManager}
+func NewTelemetryService(params TelemetryServiceParams) *TelemetryService {
+	return &TelemetryService{telemetryRepository: params.TelemetryRepository, telemetryFileManager: params.TelemetryFileManager}
 }

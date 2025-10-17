@@ -8,6 +8,7 @@ import (
 	"f1-telemetry/internal/service"
 	sessionstorage "f1-telemetry/internal/session"
 	telemetryhandler "f1-telemetry/internal/telemetry_handler"
+	"log/slog"
 	"net"
 )
 
@@ -21,10 +22,18 @@ func main() {
 	}
 
 	lapsFM := filemanager.NewFileManager()
-	lapsFM.OpenFile("laps.csv")
+	if _, err := lapsFM.OpenFile("laps.csv"); err != nil {
+		slog.Error(err.Error())
+	}
 
 	telemetryFM := filemanager.NewFileManager()
-	telemetryFM.OpenFile("telemetry.csv")
+	bufferedTelemetryFM := filemanager.NewBufferFileManger(filemanager.BufferFileMangerParams{
+		FileManager: telemetryFM,
+		BufferSize:  100,
+	})
+	if _, err := telemetryFM.OpenFile("telemetry.csv"); err != nil {
+		slog.Error(err.Error())
+	}
 
 	lapService := service.NewLapService(service.LapServiceParams{
 		LapRepository:  repository.NewLapRepository(conn),
@@ -41,6 +50,7 @@ func main() {
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 20778,
 		},
+		LapService: lapService,
 	})
 
 	closeTSConn := telemetryServer.CreateConnection()

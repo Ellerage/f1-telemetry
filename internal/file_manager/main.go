@@ -54,6 +54,10 @@ func (fm *FileManager) CloseFile() {
 	fm.file.Close()
 }
 
+func (fm *FileManager) Flush() {
+	fm.writer.Flush()
+}
+
 func (fm *FileManager) WriteRows(values [][]string) error {
 	defer fm.writer.Flush()
 	return fm.writer.WriteAll(values)
