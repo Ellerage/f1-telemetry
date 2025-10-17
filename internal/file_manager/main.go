@@ -2,9 +2,9 @@ package filemanager
 
 import (
 	"encoding/csv"
-	"errors"
-	"f1-telemetry/internal/model"
+	model "f1-telemetry/internal/model/csv"
 	"os"
+	"path/filepath"
 )
 
 type FileManager struct {
@@ -17,32 +17,36 @@ func NewFileManager() *FileManager {
 	return &FileManager{}
 }
 
-func (fm *FileManager) OpenFile(filePath string) (bool, error) {
+func (fm *FileManager) OpenFile(path string) (bool, error) {
+	fm.filePath = path
+
 	if fm.file != nil {
 		fm.CloseFile()
 	}
 
 	isFileExist := fm.IsFileExist()
-	var errs []error
 
-	file, err := os.OpenFile(fm.filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		errs = append(errs, err)
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return false, err
 	}
 
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		return isFileExist, err
+	}
 	fm.file = file
-	fm.filePath = filePath
 
 	writer := csv.NewWriter(file)
 	fm.writer = writer
 
 	// Write header - first row
 	if !isFileExist {
-		err = fm.writeRow(model.TelemetryRowColumns)
-		errs = append(errs, err)
+		err = fm.WriteRow(model.TelemetryRowColumns)
+		return isFileExist, err
 	}
 
-	return isFileExist, errors.Join(errs...)
+	return isFileExist, nil
 }
 
 func (fm *FileManager) CloseFile() {
@@ -56,12 +60,22 @@ func (fm *FileManager) WriteRows(values [][]string) error {
 }
 
 func (fm *FileManager) IsFileExist() bool {
+	if fm.filePath == "" {
+		return false
+	}
 	_, err := os.Stat(fm.filePath)
-	return !os.IsNotExist(err)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+
+		return false
+	}
+	return true
 }
 
-// Write one row - use it for header
-func (fm *FileManager) writeRow(values []string) error {
+// Write one row - not effective for frequent writing
+func (fm *FileManager) WriteRow(values []string) error {
 	defer fm.writer.Flush()
 	return fm.writer.Write(values)
 }

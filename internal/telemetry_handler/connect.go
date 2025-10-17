@@ -8,7 +8,6 @@ import (
 )
 
 type FileManager interface {
-	OpenFile(filePath string) (bool, error)
 }
 
 type TelemetryUDPServer struct {

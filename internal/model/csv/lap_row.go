@@ -43,3 +43,9 @@ var LapRowColumn = []string{
 	"SessionType",
 	"TrackId",
 }
+
+type LapFilters struct {
+	SessionUID  *uint64
+	TrackId     *int8
+	SessionType *uint8
+}
