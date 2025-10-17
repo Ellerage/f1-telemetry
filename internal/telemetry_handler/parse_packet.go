@@ -3,21 +3,43 @@ package telemetryhandler
 import (
 	"bytes"
 	"encoding/binary"
-	"f1-telemetry/internal/model"
+	enums "f1-telemetry/internal/model/enums"
+	packets "f1-telemetry/internal/model/packets"
 	"fmt"
 )
 
+// TODO:
+// sync pool.
+// Return pointer
 func ParsePacket(data []byte) (any, error, bool) {
 	buf := bytes.NewReader(data)
 
-	var header model.PacketHeader
+	var header packets.PacketHeader
 	if err := binary.Read(buf, binary.LittleEndian, &header); err != nil {
 		return nil, fmt.Errorf("read header: %w", err), false
 	}
 
 	switch header.PacketId {
-	case uint8(model.Lap):
-		var pkt model.LapPacket
+	case uint8(enums.CarTelemetry):
+		var pkt packets.CarTelemetryPacket
+		pkt.Header = header
+
+		if err := binary.Read(buf, binary.LittleEndian, &pkt.CarTelemetryData); err != nil {
+			return nil, err, false
+		}
+		if err := binary.Read(buf, binary.LittleEndian, &pkt.MfdPanelIndex); err != nil {
+			return nil, err, false
+		}
+		if err := binary.Read(buf, binary.LittleEndian, &pkt.MfdPanelIndexSecondaryPlayer); err != nil {
+			return nil, err, false
+		}
+		if err := binary.Read(buf, binary.LittleEndian, &pkt.SuggestedGear); err != nil {
+			return nil, err, false
+		}
+
+		return pkt, nil, true
+	case uint8(enums.Lap):
+		var pkt packets.LapPacket
 		pkt.Header = header
 
 		if err := binary.Read(buf, binary.LittleEndian, &pkt.LapData); err != nil {
@@ -34,29 +56,11 @@ func ParsePacket(data []byte) (any, error, bool) {
 
 		return pkt, nil, true
 
-	case uint8(model.Motion):
-		var pkt model.MotionPacket
-		pkt.Header = header
+	case uint8(enums.Session):
+		var pkt packets.SessionPacket
 
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.CarMotionData); err != nil {
-			return nil, err, false
-		}
-
-		return pkt, nil, true
-	case uint8(model.CarTelemetry):
-		var pkt model.CarTelemetryPacket
-		pkt.Header = header
-
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.CarTelemetryData); err != nil {
-			return nil, err, false
-		}
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.MfdPanelIndex); err != nil {
-			return nil, err, false
-		}
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.MfdPanelIndexSecondaryPlayer); err != nil {
-			return nil, err, false
-		}
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.SuggestedGear); err != nil {
+		err := binary.Read(buf, binary.LittleEndian, &pkt)
+		if err != nil {
 			return nil, err, false
 		}
 

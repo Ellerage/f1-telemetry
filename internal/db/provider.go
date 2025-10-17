@@ -7,20 +7,24 @@ import (
 )
 
 type DBProvider struct {
-	db *sql.DB
+	conn *sql.DB
 }
 
 func NewDBProvider() *DBProvider {
 	return &DBProvider{}
 }
 
-func (p *DBProvider) DBConnect(dbname string) (*sql.DB, func() error) {
-	db, err := sql.Open("duckdb", dbname)
+func (p *DBProvider) DBConnect() (*sql.DB, func() error, error) {
+	conn, err := sql.Open("duckdb", ":memory:")
 	if err != nil {
-		panic(err)
+		return nil, conn.Close, err
 	}
 
-	p.db = db
+	err = conn.Ping()
+	if err != nil {
+		return nil, conn.Close, err
+	}
+	p.conn = conn
 
-	return db, db.Close
+	return conn, conn.Close, nil
 }
