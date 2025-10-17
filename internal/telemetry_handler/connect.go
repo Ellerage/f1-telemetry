@@ -12,21 +12,28 @@ type LapService interface {
 	Create(toCreate model.LapRow) error
 }
 
+type TelemetryService interface {
+	Create(toCreate model.TelemetryRow) error
+}
+
 type TelemetryUDPServerParams struct {
-	Addr       net.UDPAddr
-	LapService LapService
+	Addr             net.UDPAddr
+	LapService       LapService
+	TelemetryService TelemetryService
 }
 
 type TelemetryUDPServer struct {
-	conn       *net.UDPConn
-	addr       net.UDPAddr
-	lapService LapService
+	conn             *net.UDPConn
+	addr             net.UDPAddr
+	lapService       LapService
+	telemetryService TelemetryService
 }
 
 func NewTelemetryServer(params TelemetryUDPServerParams) *TelemetryUDPServer {
 	return &TelemetryUDPServer{
-		addr:       params.Addr,
-		lapService: params.LapService,
+		addr:             params.Addr,
+		lapService:       params.LapService,
+		telemetryService: params.TelemetryService,
 	}
 }
 
@@ -71,6 +78,7 @@ func (ts *TelemetryUDPServer) RegisterHandler() {
 			fmt.Println("[LapData] Packet received")
 			ts.lapService.Create(p.ToLapRow())
 		case packets.CarTelemetryPacket:
+			ts.telemetryService.Create(p.ToLapRow())
 			fmt.Println("[CarTelemetryPacket] Packet received")
 		default:
 			fmt.Println("[Unknown] Packet received")

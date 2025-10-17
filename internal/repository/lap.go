@@ -7,18 +7,18 @@ import (
 	"strings"
 )
 
-type FileManger interface {
+type LapFileManger interface {
 	WriteRow([]string) error
 }
 
 type LapRepositoryParams struct {
 	DB         *sql.DB
-	FileManger FileManger
+	FileManger LapFileManger
 }
 
 type LapRepository struct {
 	db         *sql.DB
-	fileManger FileManger
+	fileManger LapFileManger
 }
 
 func NewLapRepository(params LapRepositoryParams) *LapRepository {
