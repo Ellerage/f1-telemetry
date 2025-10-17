@@ -1,5 +1,7 @@
 package model
 
+import model "f1-telemetry/internal/model/csv"
+
 // 20 Hz update
 type CarTelemetryData struct {
 	Speed                   uint16     // Speed of car in kilometres per hour
@@ -29,4 +31,26 @@ type CarTelemetryPacket struct {
 	// May vary depending on game mode
 	MfdPanelIndexSecondaryPlayer uint8 // See above
 	SuggestedGear                int8  // Suggested gear for the player (1-8) // 0 if no gear suggested
+}
+
+func (tp *CarTelemetryPacket) ToLapRow() model.TelemetryRow {
+	data := tp.CarTelemetryData[tp.Header.PlayerCarIndex]
+
+	return model.TelemetryRow{
+		PacketId:       tp.Header.PacketId,
+		SessionTime:    tp.Header.SessionTime,
+		SessionUID:     tp.Header.SessionUID,
+		PlayerCarIndex: tp.Header.PlayerCarIndex,
+
+		Speed:    data.Speed,
+		Throttle: data.Throttle,
+		Brake:    data.Brake,
+		Steer:    data.Steer,
+
+		CurrentLapNum:      0, // Get from session
+		CurrentLapTimeInMS: 0, //
+		LapDistance:        0,
+		TrackLength:        0,
+		SessionType:        0,
+	}
 }

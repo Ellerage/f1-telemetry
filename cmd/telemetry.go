@@ -36,21 +36,33 @@ func main() {
 	}
 
 	lapService := service.NewLapService(service.LapServiceParams{
-		LapRepository:  repository.NewLapRepository(conn),
+		LapRepository: repository.NewLapRepository(repository.LapRepositoryParams{
+			DB:         conn,
+			FileManger: lapsFM,
+		}),
 		LapFileManager: lapsFM,
 	})
 
+	repository.NewTelemetryRepository(repository.TelemetryRepositoryParams{
+		DB:         conn,
+		FileManger: bufferedTelemetryFM,
+	})
+
 	telemetryService := service.NewTelemetryService(service.TelemetryServiceParams{
-		TelemetryRepository:  repository.NewLapRepository(conn),
+		TelemetryRepository: repository.NewTelemetryRepository(repository.TelemetryRepositoryParams{
+			DB:         conn,
+			FileManger: bufferedTelemetryFM,
+		}),
 		TelemetryFileManager: lapsFM,
 	})
 
-	telemetryServer := telemetryhandler.NewTelemetryServer(telemetryhandler.TelemetryUDPServer{
+	telemetryServer := telemetryhandler.NewTelemetryServer(telemetryhandler.TelemetryUDPServerParams{
 		Addr: net.UDPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 20778,
 		},
-		LapService: lapService,
+		LapService:       lapService,
+		TelemetryService: telemetryService,
 	})
 
 	closeTSConn := telemetryServer.CreateConnection()
