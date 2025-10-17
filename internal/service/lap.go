@@ -7,6 +7,7 @@ import (
 type LapRepository interface {
 	GetAll(filters model.LapFilters) ([]model.LapRow, error)
 	GetBySessionIdLapNum(sessionId uint64, lapNum uint8) (model.LapRow, error)
+	Create(toCreate model.LapRow) error
 }
 
 type LapServiceParams struct {
@@ -31,6 +32,6 @@ func (s *LapService) GetBySessionIdLapNum(sessionId uint64, lapNum uint8) (model
 	return s.lapRepository.GetBySessionIdLapNum(sessionId, lapNum)
 }
 
-func (s *LapService) Create() error {
-	return nil
+func (s *LapService) Create(toCreate model.LapRow) error {
+	return s.lapRepository.Create(toCreate)
 }
