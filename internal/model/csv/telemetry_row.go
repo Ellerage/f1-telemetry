@@ -4,10 +4,9 @@ import "strconv"
 
 type TelemetryRow struct {
 	// Header
-	PacketId       uint8
-	SessionTime    float32
-	SessionUID     uint64
-	PlayerCarIndex uint8
+	PacketId    uint8
+	SessionTime float32
+	SessionUID  uint64
 
 	// Car telemetry
 	Speed    uint16
@@ -23,6 +22,7 @@ type TelemetryRow struct {
 	// Session
 	TrackLength uint16
 	SessionType uint8
+	TrackId     int8
 }
 
 func (r *TelemetryRow) FormatToRow() []string {
@@ -30,7 +30,6 @@ func (r *TelemetryRow) FormatToRow() []string {
 		strconv.FormatUint(uint64(r.PacketId), 10),
 		strconv.FormatUint(uint64(r.SessionTime), 10),
 		strconv.FormatUint(uint64(r.SessionUID), 10),
-		strconv.FormatUint(uint64(r.PlayerCarIndex), 10),
 		strconv.FormatUint(uint64(r.Speed), 10),
 		strconv.FormatUint(uint64(r.Throttle), 10),
 		strconv.FormatUint(uint64(r.Brake), 10),
@@ -40,6 +39,7 @@ func (r *TelemetryRow) FormatToRow() []string {
 		strconv.FormatUint(uint64(r.LapDistance), 10),
 		strconv.FormatUint(uint64(r.TrackLength), 10),
 		strconv.FormatUint(uint64(r.SessionType), 10),
+		strconv.FormatInt(int64(r.TrackId), 10),
 	}
 }
 
@@ -47,7 +47,6 @@ var TelemetryRowColumns = []string{
 	"PacketId",
 	"SessionTime",
 	"SessionUID",
-	"PlayerCarIndex",
 	"Speed",
 	"Throttle",
 	"Brake",
@@ -57,4 +56,5 @@ var TelemetryRowColumns = []string{
 	"LapDistance",
 	"TrackLength",
 	"SessionType",
+	"TrackId",
 }

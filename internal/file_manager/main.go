@@ -2,7 +2,6 @@ package filemanager
 
 import (
 	"encoding/csv"
-	model "f1-telemetry/internal/model/csv"
 	"os"
 	"path/filepath"
 )
@@ -11,10 +10,11 @@ type FileManager struct {
 	filePath string
 	file     *os.File
 	writer   *csv.Writer
+	headers  []string
 }
 
-func NewFileManager() *FileManager {
-	return &FileManager{}
+func NewFileManager(headers []string) *FileManager {
+	return &FileManager{headers: headers}
 }
 
 func (fm *FileManager) OpenFile(path string) (bool, error) {
@@ -42,7 +42,7 @@ func (fm *FileManager) OpenFile(path string) (bool, error) {
 
 	// Write header - first row
 	if !isFileExist {
-		err = fm.WriteRow(model.TelemetryRowColumns)
+		err = fm.WriteRow(fm.headers)
 		return isFileExist, err
 	}
 
