@@ -2,6 +2,7 @@ package telemetryhandler
 
 import (
 	modelcsv "f1-telemetry/internal/model/csv"
+	model "f1-telemetry/internal/model/enums"
 	packets "f1-telemetry/internal/model/packets"
 	modelservice "f1-telemetry/internal/model/service"
 	"f1-telemetry/internal/utils"
@@ -29,11 +30,16 @@ type SessionStorage interface {
 	GetLastLapTimeInMS() uint32
 }
 
+type ObsApi interface {
+	SaveReplay(filename string) error
+}
+
 type TelemetryUDPServerParams struct {
 	Addr             net.UDPAddr
 	LapService       LapService
 	TelemetryService TelemetryService
 	SessionStorage   SessionStorage
+	ObsApi           ObsApi
 }
 
 type TelemetryUDPServer struct {
@@ -42,6 +48,7 @@ type TelemetryUDPServer struct {
 	lapService       LapService
 	telemetryService TelemetryService
 	sessionStorage   SessionStorage
+	obsApi           ObsApi
 }
 
 func NewTelemetryServer(params TelemetryUDPServerParams) *TelemetryUDPServer {
@@ -50,6 +57,7 @@ func NewTelemetryServer(params TelemetryUDPServerParams) *TelemetryUDPServer {
 		lapService:       params.LapService,
 		telemetryService: params.TelemetryService,
 		sessionStorage:   params.SessionStorage,
+		obsApi:           params.ObsApi,
 	}
 }
 
@@ -118,6 +126,16 @@ func (ts *TelemetryUDPServer) RegisterHandler() {
 				})
 
 				ts.lapService.Create(playerData)
+
+				fileName := fmt.Sprintf("%s - %d - %s",
+					model.TrackIDMap[uint8(ts.sessionStorage.GetTrackId())],
+					ts.sessionStorage.GetCurrentLapNum(),
+					utils.GetLapTimeString(p.LapData[p.Header.PlayerCarIndex].LastLapTimeInMS),
+				)
+
+				if err := ts.obsApi.SaveReplay(fileName); err != nil {
+					slog.Error("Saving replay:", "err", err.Error())
+				}
 			}
 
 			ts.sessionStorage.Update(modelservice.SessionStorageUpdate{
