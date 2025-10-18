@@ -33,24 +33,33 @@ type CarTelemetryPacket struct {
 	SuggestedGear                int8  // Suggested gear for the player (1-8) // 0 if no gear suggested
 }
 
-func (tp *CarTelemetryPacket) ToLapRow() model.TelemetryRow {
+type TelemetryRowSessionData struct {
+	CurrentLapNum      uint8
+	CurrentLapTimeInMS uint32
+	LapDistance        float32
+	TrackLength        uint16
+	SessionType        uint8
+	TrackId            int8
+}
+
+func (tp *CarTelemetryPacket) ToLapRow(params TelemetryRowSessionData) model.TelemetryRow {
 	data := tp.CarTelemetryData[tp.Header.PlayerCarIndex]
 
 	return model.TelemetryRow{
-		PacketId:       tp.Header.PacketId,
-		SessionTime:    tp.Header.SessionTime,
-		SessionUID:     tp.Header.SessionUID,
-		PlayerCarIndex: tp.Header.PlayerCarIndex,
+		PacketId:    tp.Header.PacketId,
+		SessionTime: tp.Header.SessionTime,
+		SessionUID:  tp.Header.SessionUID,
 
 		Speed:    data.Speed,
 		Throttle: data.Throttle,
 		Brake:    data.Brake,
 		Steer:    data.Steer,
 
-		CurrentLapNum:      0, // Get from session
-		CurrentLapTimeInMS: 0, //
-		LapDistance:        0,
-		TrackLength:        0,
-		SessionType:        0,
+		CurrentLapNum:      params.CurrentLapNum,
+		CurrentLapTimeInMS: params.CurrentLapTimeInMS,
+		LapDistance:        params.LapDistance,
+		TrackLength:        params.TrackLength,
+		SessionType:        params.SessionType,
+		TrackId:            params.TrackId,
 	}
 }

@@ -19,8 +19,7 @@ type LapRow struct {
 	Sector3Minutes uint8  // Sector 3 whole minute part
 	Sector3MS      uint16 // Sector 3 time milliseconds part
 
-	TotalMinutes uint8
-	TotalMS      uint16
+	Total uint32
 
 	CurrentLapInvalid uint8 // Current lap invalid - 0 = valid, 1 = invalid
 
@@ -40,8 +39,7 @@ func (l *LapRow) FormatToRow() []string {
 		strconv.FormatUint(uint64(l.Sector2MS), 10),
 		strconv.FormatUint(uint64(l.Sector3Minutes), 10),
 		strconv.FormatUint(uint64(l.Sector3MS), 10),
-		strconv.FormatUint(uint64(l.TotalMinutes), 10),
-		strconv.FormatUint(uint64(l.TotalMS), 10),
+		strconv.FormatUint(uint64(l.Total), 10),
 		strconv.FormatUint(uint64(l.CurrentLapInvalid), 10),
 		strconv.FormatUint(uint64(l.SessionType), 10),
 		strconv.FormatUint(uint64(l.TrackId), 10),
@@ -58,8 +56,7 @@ var LapRowColumn = []string{
 	"Sector2MS",
 	"Sector3Minutes",
 	"Sector3MS",
-	"TotalMinutes",
-	"TotalMS",
+	"Total",
 	"CurrentLapInvalid",
 	"SessionType",
 	"TrackId",

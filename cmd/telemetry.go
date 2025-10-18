@@ -3,7 +3,7 @@ package main
 import (
 	"f1-telemetry/internal/db"
 	filemanager "f1-telemetry/internal/file_manager"
-	hotkeyhandler "f1-telemetry/internal/hotkey_handler"
+	model "f1-telemetry/internal/model/csv"
 	"f1-telemetry/internal/repository"
 	"f1-telemetry/internal/service"
 	sessionstorage "f1-telemetry/internal/session"
@@ -21,12 +21,12 @@ func main() {
 		panic(err)
 	}
 
-	lapsFM := filemanager.NewFileManager()
+	lapsFM := filemanager.NewFileManager(model.LapRowColumn)
 	if _, err := lapsFM.OpenFile("laps.csv"); err != nil {
 		slog.Error(err.Error())
 	}
 
-	telemetryFM := filemanager.NewFileManager()
+	telemetryFM := filemanager.NewFileManager(model.TelemetryRowColumns)
 	bufferedTelemetryFM := filemanager.NewBufferFileManger(filemanager.BufferFileMangerParams{
 		FileManager: telemetryFM,
 		BufferSize:  100,
@@ -63,19 +63,17 @@ func main() {
 		},
 		LapService:       lapService,
 		TelemetryService: telemetryService,
+		SessionStorage:   sessionstorage.NewSessionStorage(),
 	})
 
 	closeTSConn := telemetryServer.CreateConnection()
 	defer closeTSConn()
 
-	// Storage with current token
-	sesstionStorage := sessionstorage.NewSessionStorage()
-
 	// Hotkey handler for quick commands
-	hkHandler := hotkeyhandler.NewHotkeyHandler(
-		hotkeyhandler.HotkeyHandlerParams{SessionStorage: sesstionStorage},
-	)
-	hkHandler.RegisterHotkeyListener()
+	// hkHandler := hotkeyhandler.NewHotkeyHandler(
+	// 	hotkeyhandler.HotkeyHandlerParams{SessionStorage: sesstionStorage},
+	// )
+	// hkHandler.RegisterHotkeyListener()
 
 	go telemetryServer.RegisterHandler()
 
