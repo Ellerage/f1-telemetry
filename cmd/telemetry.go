@@ -6,6 +6,7 @@ import (
 	model "f1-telemetry/internal/model/csv"
 	"f1-telemetry/internal/obs"
 	"f1-telemetry/internal/repository"
+	apiserver "f1-telemetry/internal/server"
 	"f1-telemetry/internal/service"
 	sessionstorage "f1-telemetry/internal/session"
 	telemetryhandler "f1-telemetry/internal/telemetry_handler"
@@ -27,6 +28,10 @@ const (
 
 	// UDP Server
 	UDP_PORT = 20778
+)
+
+const (
+	USE_OBS = false
 )
 
 func main() {
@@ -73,15 +78,13 @@ func main() {
 		TelemetryFileManager: lapsFM,
 	})
 
-	obsApi := obs.NewOBSService(OBS_ADDR, OBS_PORT, OBS_PASSWORD, OBS_BUFFER_SECONDS)
+	obsApi := obs.NewOBSService(OBS_ADDR, OBS_PORT, OBS_PASSWORD, OBS_BUFFER_SECONDS, USE_OBS)
 	if err := obsApi.Connect(); err != nil {
 		slog.Error(err.Error())
-		return
 	}
 
 	if err := obsApi.StartReplayBuffer(); err != nil {
 		slog.Error(err.Error())
-		return
 	}
 
 	telemetryServer := telemetryhandler.NewTelemetryServer(telemetryhandler.TelemetryUDPServerParams{
@@ -98,6 +101,12 @@ func main() {
 	closeTSConn := telemetryServer.CreateConnection()
 	defer closeTSConn()
 
+	apiServer := apiserver.NewApiServer(apiserver.APIServerParams{
+		LapService: lapService,
+	})
+
+	go apiServer.RegisterRouter()
+
 	go telemetryServer.RegisterHandler()
 
 	// Hotkey handler for quick commands
@@ -106,5 +115,5 @@ func main() {
 	// )
 	// hkHandler.RegisterHotkeyListener()
 
-	// select {}
+	select {}
 }
