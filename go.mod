@@ -8,6 +8,8 @@ require (
 	github.com/robotn/gohook v0.42.2
 )
 
+require github.com/webview/webview v0.0.0-20250911035254-55b438dc11d0 // indirect
+
 require (
 	github.com/andreykaipov/goobs v1.5.6 // indirect
 	github.com/apache/arrow-go/v18 v18.4.1 // indirect

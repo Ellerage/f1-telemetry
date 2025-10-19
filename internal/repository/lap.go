@@ -63,7 +63,7 @@ func (r *LapRepository) GetAll(filters model.LapFilters) ([]model.LapRow, error)
 
 	var Lap model.LapRow
 	for rows.Next() {
-		rows.Scan(
+		err := rows.Scan(
 			&Lap.SessionUID,
 			&Lap.PlayerCarIndex,
 			&Lap.CurrentLapNum,
@@ -78,6 +78,10 @@ func (r *LapRepository) GetAll(filters model.LapFilters) ([]model.LapRow, error)
 			&Lap.SessionType,
 			&Lap.TrackId,
 		)
+
+		if err != nil {
+			return nil, err
+		}
 
 		result = append(result, Lap)
 	}

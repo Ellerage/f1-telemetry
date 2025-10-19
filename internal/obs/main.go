@@ -21,19 +21,25 @@ type OBSService struct {
 	responses     map[string]chan map[string]any
 	respMu        sync.Mutex
 	bufferSeconds int
+	enabled       bool
 }
 
-func NewOBSService(host string, port int, password string, bufferSeconds int) *OBSService {
+func NewOBSService(host string, port int, password string, bufferSeconds int, enabled bool) *OBSService {
 	return &OBSService{
 		host:          host,
 		port:          port,
 		password:      password,
 		responses:     make(map[string]chan map[string]any),
 		bufferSeconds: bufferSeconds,
+		enabled:       enabled,
 	}
 }
 
 func (obs *OBSService) GetReplayBufferStatus() (bool, error) {
+	if !obs.enabled {
+		return false, fmt.Errorf("obs is disabled")
+	}
+
 	data, err := obs.sendRequest("GetReplayBufferStatus", nil)
 	if err != nil {
 		return false, err
@@ -47,6 +53,10 @@ func (obs *OBSService) GetReplayBufferStatus() (bool, error) {
 }
 
 func (obs *OBSService) StartReplayBuffer() error {
+	if !obs.enabled {
+		return fmt.Errorf("obs is disabled")
+	}
+
 	slog.Info("Starting Replay Buffer...")
 	_, err := obs.sendRequest("StartReplayBuffer", nil)
 	if err != nil {
@@ -66,12 +76,20 @@ func (obs *OBSService) StartReplayBuffer() error {
 }
 
 func (obs *OBSService) StopBuffer() error {
+	if !obs.enabled {
+		return fmt.Errorf("obs is disabled")
+	}
+
 	slog.Info("Stop Replay Buffer...")
 	_, err := obs.sendRequest("StopReplayBuffer", nil)
 	return err
 }
 
 func (obs *OBSService) SaveReplay(filename string) error {
+	if !obs.enabled {
+		return fmt.Errorf("obs is disabled")
+	}
+
 	active, err := obs.GetReplayBufferStatus()
 	if err != nil {
 		return fmt.Errorf("failed to check status: %w", err)
