@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"encoding/json"
+	"f1-telemetry/internal/config"
 	model "f1-telemetry/internal/model/csv"
 	"net/http"
 	"strconv"
@@ -11,16 +12,22 @@ type LapService interface {
 	GetAll(filters model.LapFilters) ([]model.LapRow, error)
 }
 
+type Config interface {
+	ChangeConfig(payload config.ConfigUpdate) config.Config
+}
+
 type APIServerParams struct {
 	LapService LapService
+	Config     Config
 }
 
 type APIServer struct {
 	lapService LapService
+	config     Config
 }
 
 func NewApiServer(params APIServerParams) *APIServer {
-	return &APIServer{lapService: params.LapService}
+	return &APIServer{lapService: params.LapService, config: params.Config}
 }
 
 func (s *APIServer) RegisterRouter() {
@@ -56,6 +63,33 @@ func (s *APIServer) RegisterRouter() {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(laps)
+	})
+
+	http.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(s.config)
+			return
+		}
+
+		if r.Method == http.MethodPost {
+			var config config.ConfigUpdate
+			err := json.NewDecoder(r.Body).Decode(&config)
+			if err != nil {
+				http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
+				return
+			}
+			defer r.Body.Close()
+
+			newConfig := s.config.ChangeConfig(config)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(newConfig)
+			return
+		}
+
 	})
 
 	http.ListenAndServe(":8080", nil)

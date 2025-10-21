@@ -1,6 +1,7 @@
 package main
 
 import (
+	"f1-telemetry/internal/config"
 	"f1-telemetry/internal/db"
 	filemanager "f1-telemetry/internal/file_manager"
 	model "f1-telemetry/internal/model/csv"
@@ -14,27 +15,12 @@ import (
 	"net"
 )
 
-const (
-	TELEMETRY_FILE_NAME = "telemetry.csv"
-	LAPS_FILE_NAME      = "laps.csv"
-	// OBS
-	OBS_BUFFER_SECONDS = 120
-	OBS_PASSWORD       = "123456"
-	OBS_PORT           = 4455
-	OBS_ADDR           = "localhost"
-
-	// Telemetry file manger
-	TELEMETRY_FM_BUFFER_ROWS = 100
-
-	// UDP Server
-	UDP_PORT = 20778
-)
-
-const (
-	USE_OBS = false
-)
-
 func main() {
+	cfg, err := config.NewConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	dbProvider := db.NewDBProvider()
 	conn, closeDBConn, err := dbProvider.DBConnect()
 	defer closeDBConn()
@@ -44,16 +30,16 @@ func main() {
 	}
 
 	lapsFM := filemanager.NewFileManager(model.LapRowColumn)
-	if _, err := lapsFM.OpenFile(LAPS_FILE_NAME); err != nil {
+	if _, err := lapsFM.OpenFile(cfg.LapsFileName); err != nil {
 		slog.Error(err.Error())
 	}
 
 	telemetryFM := filemanager.NewFileManager(model.TelemetryRowColumns)
 	bufferedTelemetryFM := filemanager.NewBufferFileManger(filemanager.BufferFileMangerParams{
 		FileManager: telemetryFM,
-		BufferSize:  TELEMETRY_FM_BUFFER_ROWS,
+		BufferSize:  int(cfg.TelemetryFMBufferRows),
 	})
-	if _, err := telemetryFM.OpenFile(TELEMETRY_FILE_NAME); err != nil {
+	if _, err := telemetryFM.OpenFile(cfg.TelemetryFileName); err != nil {
 		slog.Error(err.Error())
 	}
 
@@ -78,7 +64,7 @@ func main() {
 		TelemetryFileManager: lapsFM,
 	})
 
-	obsApi := obs.NewOBSService(OBS_ADDR, OBS_PORT, OBS_PASSWORD, OBS_BUFFER_SECONDS, USE_OBS)
+	obsApi := obs.NewOBSService(cfg.ObsAddr, int(cfg.ObsPort), cfg.ObsPassword, int(cfg.ObsBufferSeconds), cfg.UseObs == 1)
 	if err := obsApi.Connect(); err != nil {
 		slog.Error(err.Error())
 	}
@@ -90,7 +76,7 @@ func main() {
 	telemetryServer := telemetryhandler.NewTelemetryServer(telemetryhandler.TelemetryUDPServerParams{
 		Addr: net.UDPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
-			Port: UDP_PORT,
+			Port: int(cfg.Port),
 		},
 		LapService:       lapService,
 		TelemetryService: telemetryService,
@@ -103,6 +89,7 @@ func main() {
 
 	apiServer := apiserver.NewApiServer(apiserver.APIServerParams{
 		LapService: lapService,
+		Config:     cfg,
 	})
 
 	go apiServer.RegisterRouter()

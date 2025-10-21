@@ -2,6 +2,7 @@
     const navItems = [
         {text: "Home", url: "/"},
         {text: "List laps", url: "/0"},
+        {text: "Config", url: "/config"}
     ]
 </script>
 
