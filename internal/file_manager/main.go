@@ -59,8 +59,10 @@ func (fm *FileManager) Flush() {
 }
 
 func (fm *FileManager) WriteRows(values [][]string) error {
-	defer fm.writer.Flush()
-	return fm.writer.WriteAll(values)
+	err := fm.writer.WriteAll(values)
+	fm.writer.Flush()
+
+	return err
 }
 
 func (fm *FileManager) IsFileExist() bool {
@@ -68,18 +70,12 @@ func (fm *FileManager) IsFileExist() bool {
 		return false
 	}
 	_, err := os.Stat(fm.filePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-
-		return false
-	}
-	return true
+	return !os.IsNotExist(err)
 }
 
 // Write one row - not effective for frequent writing
 func (fm *FileManager) WriteRow(values []string) error {
-	defer fm.writer.Flush()
-	return fm.writer.Write(values)
+	err := fm.writer.Write(values)
+	fm.writer.Flush()
+	return err
 }

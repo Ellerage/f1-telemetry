@@ -96,11 +96,5 @@ func main() {
 
 	go telemetryServer.RegisterHandler()
 
-	// Hotkey handler for quick commands
-	// hkHandler := hotkeyhandler.NewHotkeyHandler(
-	// 	hotkeyhandler.HotkeyHandlerParams{SessionStorage: sesstionStorage},
-	// )
-	// hkHandler.RegisterHotkeyListener()
-
 	select {}
 }

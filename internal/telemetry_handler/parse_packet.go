@@ -8,9 +8,6 @@ import (
 	"fmt"
 )
 
-// TODO:
-// sync pool.
-// Return pointer
 func ParsePacket(data []byte) (any, error, bool) {
 	buf := bytes.NewReader(data)
 
@@ -20,51 +17,79 @@ func ParsePacket(data []byte) (any, error, bool) {
 	}
 
 	switch header.PacketId {
+
+	// --------------------------------------------------------------
+	// CAR TELEMETRY
+	// --------------------------------------------------------------
 	case uint8(enums.CarTelemetry):
 		var pkt packets.CarTelemetryPacket
 		pkt.Header = header
 
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.CarTelemetryData); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian,
+			&pkt.CarTelemetryData); err != nil {
 			return nil, err, false
 		}
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.MfdPanelIndex); err != nil {
+
+		if err := binary.Read(buf, binary.LittleEndian,
+			&pkt.MfdPanelIndex); err != nil {
 			return nil, err, false
 		}
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.MfdPanelIndexSecondaryPlayer); err != nil {
+
+		if err := binary.Read(buf, binary.LittleEndian,
+			&pkt.MfdPanelIndexSecondaryPlayer); err != nil {
 			return nil, err, false
 		}
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.SuggestedGear); err != nil {
+
+		if err := binary.Read(buf, binary.LittleEndian,
+			&pkt.SuggestedGear); err != nil {
 			return nil, err, false
 		}
 
 		return pkt, nil, true
+
+	// --------------------------------------------------------------
+	// LAP PACKET
+	// --------------------------------------------------------------
 	case uint8(enums.Lap):
 		var pkt packets.LapPacket
 		pkt.Header = header
 
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.LapData); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian,
+			&pkt.LapData); err != nil {
 			return nil, err, false
 		}
 
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.TimeTrialPBCarIdx); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian,
+			&pkt.TimeTrialPBCarIdx); err != nil {
 			return nil, err, false
 		}
 
-		if err := binary.Read(buf, binary.LittleEndian, &pkt.TimeTrialRivalCarIdx); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian,
+			&pkt.TimeTrialRivalCarIdx); err != nil {
 			return nil, err, false
 		}
 
 		return pkt, nil, true
 
+	// --------------------------------------------------------------
+	// SESSION PACKET (читается одним binary.Read!)
+	// --------------------------------------------------------------
 	case uint8(enums.Session):
 		var pkt packets.SessionPacket
+		pkt.Header = header
 
-		err := binary.Read(buf, binary.LittleEndian, &pkt)
-		if err != nil {
+		if err := binary.Read(buf, binary.LittleEndian,
+			&pkt.Weather); err != nil {
+			return nil, err, false
+		}
+
+		if err := binary.Read(buf, binary.LittleEndian,
+			&pkt.TrackTemperature); err != nil {
 			return nil, err, false
 		}
 
 		return pkt, nil, true
+
 	default:
 		return nil, nil, false
 	}

@@ -118,7 +118,7 @@ func saveConfig(config *Config) error {
 
 func getDefaultConfig() *Config {
 	return &Config{
-		Port: 20778,
+		Port: 20779,
 
 		TelemetryFileName: "telemetry.csv",
 		LapsFileName:      "laps.csv",

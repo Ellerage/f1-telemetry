@@ -13,4 +13,5 @@ type PacketHeader struct {
 	OverallFrameIdentifier  uint32  // Overall identifier for the frame the data was retrieved on, doesn't go back after flashbacks
 	PlayerCarIndex          uint8   // Index of player's car in the array
 	SecondaryPlayerCarIndex uint8   // Index of secondary player's car in
+	_                       [2]uint8
 }

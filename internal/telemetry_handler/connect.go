@@ -118,14 +118,17 @@ func (ts *TelemetryUDPServer) RegisterHandler() {
 				})
 
 				playerData := p.ToLapRow(packets.LapRowSessionData{
-					Sector3Minutes: Sector3Minutes, // count
+					Sector3Minutes: Sector3Minutes,
 					Sector3MS:      Sector3MS,
 					Total:          p.LapData[p.Header.PlayerCarIndex].LastLapTimeInMS,
 					SessionType:    ts.sessionStorage.GetSessionType(),
 					TrackId:        ts.sessionStorage.GetTrackId(),
 				})
 
-				ts.lapService.Create(playerData)
+				err := ts.lapService.Create(playerData)
+				if err != nil {
+					slog.Error("create lap row err", "err", err.Error())
+				}
 
 				fileName := fmt.Sprintf("%s - %d - %s",
 					model.TrackIDMap[uint8(ts.sessionStorage.GetTrackId())],
